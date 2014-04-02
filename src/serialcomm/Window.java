@@ -5,24 +5,31 @@
  */
 
 package serialcomm;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  *
  * @author Rodrigo
  */
-public abstract class Window extends javax.swing.JFrame {
+public class Window extends javax.swing.JFrame {
     byte code = 0;
+    SerialComm comm;
     /**
      * Creates new form Window
      */
-    public Window() {
+    public Window(SerialComm port) {
+        comm = port;
         initComponents();
         setConnected(false);
     }
-    public abstract void guiConnect();
-    public abstract void guiDisconnect();
-    public abstract void guiSendData(byte data);
-    public abstract void guiRefreshPorts();
     
+    void cleanPorts() {
+        portListComboBox.removeAllItems();
+    }
+        
     public void addPort (String portName)
     {
         portListComboBox.addItem(portName);
@@ -247,19 +254,42 @@ public abstract class Window extends javax.swing.JFrame {
     }//GEN-LAST:event_jRadioButton8ActionPerformed
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
-        guiConnect();
+        comm.connect(this.getSelectedPortName());
+                if(comm.getConnected() == true)
+                {
+                    if(comm.initIOStream() == true)
+                    {
+                        comm.initListener();
+                    }
+                }
+        
+        this.setConnected(comm.getConnected());
+        
     }//GEN-LAST:event_connectButtonActionPerformed
 
     private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
-        guiDisconnect();
+        comm.disconnect();
+        this.setConnected(comm.getConnected());
     }//GEN-LAST:event_disconnectButtonActionPerformed
 
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
-        guiSendData(code);
+        System.out.print("Sending: ");
+        System.out.printf("0x%02X\n",code);
+        comm.writeData(code);
     }//GEN-LAST:event_sendButtonActionPerformed
 
     private void refreshPortsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshPortsButtonActionPerformed
-        guiRefreshPorts();
+        //clean the combo box
+        cleanPorts();
+        //look for new ports
+        comm.searchForPorts();
+        //show them on combo box
+        Iterator it = comm.getPortMap().entrySet().iterator();
+        while( it.hasNext())
+        {
+            Map.Entry pair = (Map.Entry)it.next();
+            portListComboBox.addItem(pair.getKey());
+        }
     }//GEN-LAST:event_refreshPortsButtonActionPerformed
 //
 //    /**
@@ -313,9 +343,7 @@ public abstract class Window extends javax.swing.JFrame {
     private javax.swing.JButton sendButton;
     // End of variables declaration//GEN-END:variables
 
-    void cleanPorts() {
-        portListComboBox.removeAllItems();
-    }
+
 
 
 }
