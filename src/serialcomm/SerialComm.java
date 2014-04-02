@@ -10,6 +10,7 @@ import gnu.io.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.TooManyListenersException;
@@ -23,11 +24,13 @@ import javax.swing.JOptionPane;
  */
 public class SerialComm implements SerialPortEventListener{
       
+    //list of available port names
+    ArrayList <String> portNames = new ArrayList();
     //list of ports found
     private Enumeration ports = null;
     //to map CommPortIdentifiers with portnames
     private HashMap portMap = new HashMap();
-    //^ this two should be static
+    //^ this two should be static...
     
     //port to use
     private CommPortIdentifier selectedPortIdentifier = null;
@@ -43,9 +46,9 @@ public class SerialComm implements SerialPortEventListener{
     
     public SerialComm(){}
     
-    public HashMap getPortMap()
+    public ArrayList <String> getPortNames()
     {
-        return portMap;
+        return portNames;
     }
     
     @Override
@@ -60,6 +63,8 @@ public class SerialComm implements SerialPortEventListener{
     //this method should be static...
     public void searchForPorts ()
     {
+        portNames.clear();
+        portMap.clear();
         ports= CommPortIdentifier.getPortIdentifiers();
         while (ports.hasMoreElements())
         {
@@ -67,6 +72,7 @@ public class SerialComm implements SerialPortEventListener{
             if(currentPort.getPortType() == CommPortIdentifier.PORT_SERIAL)
             {
                 portMap.put(currentPort.getName(), currentPort);
+                portNames.add(currentPort.getName());
             }
         }
     }
