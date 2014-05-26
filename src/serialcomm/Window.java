@@ -24,21 +24,19 @@ public class Window extends javax.swing.JFrame {
         comm = port;
         initComponents();
         setConnected(false);
-        refreshPorts();
     }
     
-    
-    private void refreshPorts() {
-        //clean the combo box
+    void cleanPorts() {
         portListComboBox.removeAllItems();
-        //look for new ports
-        comm.searchForPorts();
-        //show them on combo box
-        Iterator it = comm.getPortNames().iterator();
-        while( it.hasNext())
-        {
-            portListComboBox.addItem(it.next());
-        }
+    }
+        
+    public void addPort (String portName)
+    {
+        portListComboBox.addItem(portName);
+    }
+    public String getSelectedPortName ()
+    {
+        return (String) this.portListComboBox.getSelectedItem();
     }
     public void setConnected (boolean connected)
     {
@@ -256,7 +254,7 @@ public class Window extends javax.swing.JFrame {
     }//GEN-LAST:event_jRadioButton8ActionPerformed
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
-        comm.connect((String) portListComboBox.getSelectedItem());
+        comm.connect(this.getSelectedPortName());
                 if(comm.getConnected() == true)
                 {
                     if(comm.initIOStream() == true)
@@ -281,7 +279,17 @@ public class Window extends javax.swing.JFrame {
     }//GEN-LAST:event_sendButtonActionPerformed
 
     private void refreshPortsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refreshPortsButtonActionPerformed
-        refreshPorts();
+        //clean the combo box
+        cleanPorts();
+        //look for new ports
+        comm.searchForPorts();
+        //show them on combo box
+        Iterator it = comm.getPortMap().entrySet().iterator();
+        while( it.hasNext())
+        {
+            Map.Entry pair = (Map.Entry)it.next();
+            portListComboBox.addItem(pair.getKey());
+        }
     }//GEN-LAST:event_refreshPortsButtonActionPerformed
 //
 //    /**
@@ -335,5 +343,7 @@ public class Window extends javax.swing.JFrame {
     private javax.swing.JButton sendButton;
     // End of variables declaration//GEN-END:variables
 
-    
+
+
+
 }
