@@ -6,10 +6,18 @@
 
 package serialcomm;
 
-import gnu.io.*;
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.PortInUseException;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+import gnu.io.UnsupportedCommOperationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.TooManyListenersException;
@@ -22,7 +30,9 @@ import javax.swing.JOptionPane;
  * @author Rodrigo
  */
 public class SerialComm implements SerialPortEventListener{
-      
+    
+    //list of port names
+     ArrayList<String> portNames = new ArrayList();
     //list of ports found
     private Enumeration ports = null;
     //to map CommPortIdentifiers with portnames
@@ -43,9 +53,9 @@ public class SerialComm implements SerialPortEventListener{
     
     public SerialComm(){}
     
-    public HashMap getPortMap()
+    public ArrayList<String> getPortNames()
     {
-        return portMap;
+      return portNames;
     }
     
     @Override
@@ -53,6 +63,13 @@ public class SerialComm implements SerialPortEventListener{
         //What to do when data is recieved
           if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE)
         {
+            try{
+              System.out.printf("Recieved: 0x%02X\n", new Object[] { Byte.valueOf((byte)this.input.read()) });
+            }
+            catch (IOException ex)
+            {
+              Logger.getLogger(SerialComm.class.getName()).log(Level.SEVERE, null, ex);
+            }
            
         }
     }
@@ -60,6 +77,8 @@ public class SerialComm implements SerialPortEventListener{
     //this method should be static...
     public void searchForPorts ()
     {
+        portNames.clear();
+        portMap.clear();
         ports= CommPortIdentifier.getPortIdentifiers();
         while (ports.hasMoreElements())
         {
@@ -67,6 +86,7 @@ public class SerialComm implements SerialPortEventListener{
             if(currentPort.getPortType() == CommPortIdentifier.PORT_SERIAL)
             {
                 portMap.put(currentPort.getName(), currentPort);
+                portNames.add(currentPort.getName());
             }
         }
     }
@@ -104,12 +124,12 @@ public class SerialComm implements SerialPortEventListener{
     public boolean initIOStream()
     {
         boolean successful= false;
-        try {
+        try 
+        {
            input = serialPort.getInputStream();
            output = serialPort.getOutputStream();
            
-           successful = true;
-           return successful;
+           return true;
         }catch (IOException e)
         {
             JOptionPane.showMessageDialog (null,"Initialization failed. Please try again.");
@@ -138,7 +158,6 @@ public class SerialComm implements SerialPortEventListener{
         //closing serial port
         try
         {
-            //writeData(0,0);
             serialPort.removeEventListener();
             serialPort.close();
             input.close();
